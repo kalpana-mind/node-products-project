@@ -2,7 +2,7 @@ const Product = require('../models/product');
 //const Order = require('../models/order');
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render('shop/index', {
         prods: products,
@@ -16,7 +16,7 @@ exports.getIndex = (req, res, next) => {
 exports.getProducts = (req, res, next) => {
   // console.log('shop.js', adminData.products);
   // res.sendFile(path.join(rootDir, 'views', 'shop.html'));
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render('shop/product-list', {
         prods: products,
