@@ -1,3 +1,5 @@
+const mongoose = require('mongoose');
+
 const Product = require('../models/product');
 
 const { validationResult } = require('express-validator');
@@ -16,8 +18,23 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = (req, res, next) => {
-  const { title, imageUrl, description, price } = req.body;
-
+  const { title, description, price } = req.body;
+  const image = req.file;
+  if (!image) {
+    return res.status(422).render('admin/edit-product', {
+      pageTitle: 'Add Product',
+      path: '/admin/edit-product',
+      editing: false,
+      hasError: true,
+      product: {
+        title: title,
+        price: price,
+        description: description,
+      },
+      errorMessage: 'Attached file is not an image.',
+      validationErrors: [],
+    });
+  }
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -37,6 +54,8 @@ exports.postAddProduct = (req, res, next) => {
       validationErrors: errors.array(),
     });
   }
+
+  const imageUrl = image.path;
   const product = new Product({
     title,
     price,
@@ -47,6 +66,7 @@ exports.postAddProduct = (req, res, next) => {
   product
     .save()
     .then((result) => {
+      console.log(result);
       console.log('Created Product');
       res.redirect('/admin/products');
     })
@@ -88,7 +108,8 @@ exports.getEditProduct = (req, res, next) => {
 };
 
 exports.postEditProduct = (req, res, next) => {
-  const { productId, title, price, imageUrl, description } = req.body;
+  const { productId, title, price, description } = req.body;
+  const image = req.file;
   const errors = validationResult(req);
 
   if (!errors.isEmpty()) {
@@ -99,7 +120,7 @@ exports.postEditProduct = (req, res, next) => {
       hasError: true,
       product: {
         title: title,
-        imageUrl: imageUrl,
+
         price: price,
         description: description,
         _id: productId,
@@ -116,7 +137,9 @@ exports.postEditProduct = (req, res, next) => {
       product.title = title;
       product.price = price;
       product.description = description;
-      product.imageUrl = imageUrl;
+      if (image) {
+        product.imageUrl = image.path;
+      }
       return product.save().then((result) => {
         console.log('Updated the product!');
         res.redirect('/admin/products');
